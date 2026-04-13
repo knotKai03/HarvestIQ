@@ -1,0 +1,14 @@
+#Credentials
+.env 
+
+#Virtuial environment
+venv/ 
+
+#Python cache files
+__pycache__/
+*.pyc 
+*.pyo 
+
+#Key Files
+snowflake_key.pem
+snowflake_key_pub.pem
