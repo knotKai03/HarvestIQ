@@ -1,192 +1,199 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import KansasMap from "../components/KansasMap";
+import RiskTrendChart from "../components/RiskTrendChart";
+
+const yearlyRiskData = {
+  Northwest: [
+    { year: 2014, market: 49, weather: 58, land: 44 },
+    { year: 2015, market: 51, weather: 56, land: 45 },
+    { year: 2016, market: 48, weather: 60, land: 46 },
+    { year: 2017, market: 53, weather: 63, land: 47 },
+    { year: 2018, market: 55, weather: 61, land: 48 },
+    { year: 2019, market: 57, weather: 64, land: 49 },
+    { year: 2020, market: 60, weather: 67, land: 50 },
+    { year: 2021, market: 58, weather: 65, land: 51 },
+    { year: 2022, market: 61, weather: 69, land: 53 },
+    { year: 2023, market: 63, weather: 71, land: 54 },
+    { year: 2024, market: 64, weather: 72, land: 55 },
+  ],
+  Northeast: [
+    { year: 2014, market: 44, weather: 47, land: 52 },
+    { year: 2015, market: 45, weather: 48, land: 53 },
+    { year: 2016, market: 46, weather: 49, land: 54 },
+    { year: 2017, market: 48, weather: 51, land: 55 },
+    { year: 2018, market: 50, weather: 52, land: 56 },
+    { year: 2019, market: 51, weather: 53, land: 57 },
+    { year: 2020, market: 54, weather: 55, land: 58 },
+    { year: 2021, market: 52, weather: 56, land: 59 },
+    { year: 2022, market: 55, weather: 58, land: 60 },
+    { year: 2023, market: 56, weather: 59, land: 61 },
+    { year: 2024, market: 57, weather: 60, land: 62 },
+  ],
+  Central: [
+    { year: 2014, market: 46, weather: 50, land: 48 },
+    { year: 2015, market: 47, weather: 52, land: 49 },
+    { year: 2016, market: 49, weather: 53, land: 50 },
+    { year: 2017, market: 50, weather: 54, land: 51 },
+    { year: 2018, market: 52, weather: 56, land: 52 },
+    { year: 2019, market: 53, weather: 57, land: 53 },
+    { year: 2020, market: 55, weather: 59, land: 54 },
+    { year: 2021, market: 54, weather: 58, land: 55 },
+    { year: 2022, market: 56, weather: 60, land: 56 },
+    { year: 2023, market: 58, weather: 62, land: 57 },
+    { year: 2024, market: 59, weather: 63, land: 58 },
+  ],
+  Southwest: [
+    { year: 2014, market: 52, weather: 62, land: 41 },
+    { year: 2015, market: 53, weather: 63, land: 42 },
+    { year: 2016, market: 55, weather: 64, land: 43 },
+    { year: 2017, market: 57, weather: 66, land: 44 },
+    { year: 2018, market: 58, weather: 67, land: 45 },
+    { year: 2019, market: 60, weather: 68, land: 46 },
+    { year: 2020, market: 61, weather: 70, land: 47 },
+    { year: 2021, market: 60, weather: 69, land: 48 },
+    { year: 2022, market: 63, weather: 72, land: 49 },
+    { year: 2023, market: 64, weather: 73, land: 50 },
+    { year: 2024, market: 66, weather: 75, land: 51 },
+  ],
+  Southeast: [
+    { year: 2014, market: 43, weather: 46, land: 50 },
+    { year: 2015, market: 44, weather: 47, land: 51 },
+    { year: 2016, market: 46, weather: 48, land: 52 },
+    { year: 2017, market: 47, weather: 50, land: 53 },
+    { year: 2018, market: 49, weather: 51, land: 54 },
+    { year: 2019, market: 50, weather: 52, land: 55 },
+    { year: 2020, market: 52, weather: 54, land: 56 },
+    { year: 2021, market: 51, weather: 55, land: 57 },
+    { year: 2022, market: 53, weather: 57, land: 58 },
+    { year: 2023, market: 54, weather: 58, land: 59 },
+    { year: 2024, market: 55, weather: 59, land: 60 },
+  ],
+};
+
+const regionDescriptions = {
+  Northwest:
+    "Northwest Kansas shows elevated weather-related risk because of stronger drought exposure and climate variability across large agricultural areas.",
+  Northeast:
+    "Northeast Kansas benefits from more stable weather conditions, though land value pressure remains more noticeable in the region.",
+  Central:
+    "Central Kansas maintains a relatively balanced agricultural risk profile and serves as a useful benchmark for statewide comparison.",
+  Southwest:
+    "Southwest Kansas carries one of the highest total risk levels due to weather volatility, irrigation dependence, and commodity sensitivity.",
+  Southeast:
+    "Southeast Kansas trends lower in total agricultural risk, though market shifts and land-related changes still affect long-term planning.",
+};
 
 function Dashboard() {
-  const [selectedRegion, setSelectedRegion] = useState("Northeast");
-  const [compareRegionA, setCompareRegionA] = useState("Northeast");
-  const [compareRegionB, setCompareRegionB] = useState("Northwest");
+  const [selectedRegion, setSelectedRegion] = useState("Central");
 
-  const riskData = {
-    Northeast: {
-      totalScore: 72,
-      landRisk: 60,
-      weatherRisk: 80,
-      marketRisk: 74,
-      summary:
-        "The Northeast region shows elevated total risk because weather volatility has remained high over recent years, while market pricing has also fluctuated.",
-    },
-    Northwest: {
-      totalScore: 65,
-      landRisk: 58,
-      weatherRisk: 66,
-      marketRisk: 69,
-      summary:
-        "The Northwest region has a more moderate overall risk profile with relatively stable land values and less severe weather and market volatility.",
-    },
-    Southeast: {
-      totalScore: 78,
-      landRisk: 64,
-      weatherRisk: 84,
-      marketRisk: 77,
-      summary:
-        "The Southeast region carries a higher risk score because of stronger weather-related instability and continued market price uncertainty.",
-    },
-    Southwest: {
-      totalScore: 60,
-      landRisk: 55,
-      weatherRisk: 62,
-      marketRisk: 61,
-      summary:
-        "The Southwest region shows a lower overall risk profile due to relatively stable land values, lower weather disruption, and less severe market price fluctuation.",
-    },
-    Central: {
-      totalScore: 68,
-      landRisk: 59,
-      weatherRisk: 70,
-      marketRisk: 71,
-      summary:
-        "The Central region presents a balanced but moderate risk profile. Weather and market conditions contribute most to its risk score, while land-related risk remains comparatively steady.",
-    },
-    Kansas: {
-      totalScore: 70,
-      landRisk: 61,
-      weatherRisk: 75,
-      marketRisk: 72,
-      summary:
-        "Statewide Kansas risk remains balanced overall, but weather continues to be the largest driver of uncertainty.",
-    },
-  };
+  const latestData =
+    yearlyRiskData[selectedRegion][yearlyRiskData[selectedRegion].length - 1];
 
-  const regions = Object.keys(riskData);
-  const current = riskData[selectedRegion];
-  const regionA = riskData[compareRegionA];
-  const regionB = riskData[compareRegionB];
+  const totalRisk = useMemo(() => {
+    return Math.round(
+      latestData.market * 0.4 + latestData.weather * 0.35 + latestData.land * 0.25
+    );
+  }, [latestData]);
 
-  const compareMetric = (label, a, b) => {
-    if (a < b) {
-      return `${compareRegionA} is better than ${compareRegionB} in ${label.toLowerCase()} because its score is lower (${a} vs ${b}).`;
-    }
-    if (a > b) {
-      return `${compareRegionA} is worse than ${compareRegionB} in ${label.toLowerCase()} because its score is higher (${a} vs ${b}).`;
-    }
-    return `${compareRegionA} and ${compareRegionB} are equal in ${label.toLowerCase()} with a score of ${a}.`;
-  };
+  const chartData = yearlyRiskData[selectedRegion].map((item) => ({
+    ...item,
+    total: Math.round(item.market * 0.4 + item.weather * 0.35 + item.land * 0.25),
+  }));
 
-  const compareOverall = () => {
-    if (regionA.totalScore < regionB.totalScore) {
-      return `${compareRegionA} is better overall than ${compareRegionB} because it has a lower total risk score and appears more stable across combined categories.`;
-    }
-    if (regionA.totalScore > regionB.totalScore) {
-      return `${compareRegionA} is worse overall than ${compareRegionB} because it has a higher total risk score and shows more instability across categories.`;
-    }
-    return `${compareRegionA} and ${compareRegionB} are equal overall based on the current total risk score.`;
-  };
+  const highestContributor =
+    latestData.weather >= latestData.market && latestData.weather >= latestData.land
+      ? "Weather Risk"
+      : latestData.market >= latestData.land
+      ? "Market Risk"
+      : "Land Risk";
 
   return (
-    <div className="page-section">
-      <h1>Dashboard</h1>
-      <p className="page-intro">
-        View total regional risk, category-specific scores, and compare regions
-        against one another.
-      </p>
-
-      <div className="region-buttons">
-        {regions.map((region) => (
-          <button
-            key={region}
-            className={selectedRegion === region ? "active-region" : ""}
-            onClick={() => setSelectedRegion(region)}
-          >
-            {region}
-          </button>
-        ))}
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="card large-card">
-          <h2>{selectedRegion}</h2>
-          <p className="big-score">{current.totalScore}</p>
-          <p>{current.summary}</p>
+    <div className="page-container">
+      <section className="content-section">
+        <div className="section-heading left">
+          <h3>Historical Dashboard</h3>
+          <p>
+            This dashboard presents historical agricultural risk information for
+            Kansas from 2014 through 2024. These values represent the platform’s
+            historical data view and are separate from the predictive outlook shown
+            on the Comparative Analysis page.
+          </p>
         </div>
+      </section>
 
-        <div className="side-panel">
-          <div className="card metric-card total">
-            <h3>Total Risk</h3>
-            <p>{current.totalScore}</p>
-          </div>
+      <section className="dashboard-grid">
+        <KansasMap
+          selectedRegion={selectedRegion}
+          setSelectedRegion={setSelectedRegion}
+        />
 
-          <div className="card metric-card land">
-            <h3>Land Risk</h3>
-            <p>{current.landRisk}</p>
-          </div>
+        <div className="dashboard-side-card">
+          <h3>Dashboard Summary</h3>
+          <p>
+            This section summarizes the latest historical agricultural risk result
+            for the selected Kansas region and highlights the most influential
+            contributor to the overall score.
+          </p>
 
-          <div className="card metric-card weather">
-            <h3>Weather Risk</h3>
-            <p>{current.weatherRisk}</p>
-          </div>
-
-          <div className="card metric-card market">
-            <h3>Market Risk</h3>
-            <p>{current.marketRisk}</p>
+          <div className="summary-list">
+            <div className="summary-item">
+              <strong>Selected Region:</strong> {selectedRegion}
+            </div>
+            <div className="summary-item">
+              <strong>Total Historical Risk Score:</strong> {totalRisk}
+            </div>
+            <div className="summary-item">
+              <strong>Highest Contributor:</strong> {highestContributor}
+            </div>
+            <div className="summary-item">
+              <strong>Historical Data Window:</strong> 2014–2024
+            </div>
+            <div className="summary-item">
+              <strong>Score Range:</strong> 0–99
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="compare-box">
-        <h2>Compare Regions</h2>
-
-        <div className="compare-controls">
-          <select
-            value={compareRegionA}
-            onChange={(e) => setCompareRegionA(e.target.value)}
-          >
-            {regions.map((region) => (
-              <option key={region} value={region}>
-                {region}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={compareRegionB}
-            onChange={(e) => setCompareRegionB(e.target.value)}
-          >
-            {regions.map((region) => (
-              <option key={region} value={region}>
-                {region}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="comparison-results">
-          <div className="card">
-            <h3>Overall</h3>
-            <p>{compareOverall()}</p>
+      <section className="dashboard-main-card">
+        <div className="dashboard-card-header">
+          <div>
+            <p className="mini-label">Selected Region</p>
+            <h3>{selectedRegion}</h3>
           </div>
 
-          <div className="card">
-            <h3>Land</h3>
-            <p>{compareMetric("Land Risk", regionA.landRisk, regionB.landRisk)}</p>
-          </div>
-
-          <div className="card">
-            <h3>Weather</h3>
-            <p>{compareMetric("Weather Risk", regionA.weatherRisk, regionB.weatherRisk)}</p>
-          </div>
-
-          <div className="card">
-            <h3>Market</h3>
-            <p>{compareMetric("Market Risk", regionA.marketRisk, regionB.marketRisk)}</p>
+          <div className="score-badge">
+            <span>{totalRisk}</span>
+            <p>Historical Risk</p>
           </div>
         </div>
-      </div>
 
-      <div className="button-row">
-        <Link to="/faq" className="main-button">
-          Next: FAQ
-        </Link>
-      </div>
+        <p className="dashboard-description">{regionDescriptions[selectedRegion]}</p>
+
+        <div className="stat-grid">
+          <div className="stat-card">
+            <p>Market Risk</p>
+            <h4>{latestData.market}</h4>
+          </div>
+
+          <div className="stat-card">
+            <p>Weather Risk</p>
+            <h4>{latestData.weather}</h4>
+          </div>
+
+          <div className="stat-card">
+            <p>Land Risk</p>
+            <h4>{latestData.land}</h4>
+          </div>
+
+          <div className="stat-card">
+            <p>Latest Historical Year</p>
+            <h4>{latestData.year}</h4>
+          </div>
+        </div>
+      </section>
+
+      <RiskTrendChart data={chartData} />
     </div>
   );
 }

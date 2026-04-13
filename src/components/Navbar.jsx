@@ -1,17 +1,23 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function Navbar() {
   return (
-    <nav className="navbar">
-      <h2 className="logo">HarvestIQ</h2>
+    <header className="navbar">
+      <div className="navbar-inner">
+        <div className="brand-block">
+          <h1 className="brand-title">HarvestIQ</h1>
+          <p className="brand-subtitle">Agricultural Risk Intelligence Platform</p>
+        </div>
 
-      <div className="nav-links">
-        <Link to="/">Home</Link>
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/faq">FAQ</Link>
-        <Link to="/about">About</Link>
+        <nav className="nav-links">
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          <NavLink to="/comparative-analysis">Predictive Analysis</NavLink>
+          <NavLink to="/faq">FAQ</NavLink>
+          <NavLink to="/about">About</NavLink>
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }
 

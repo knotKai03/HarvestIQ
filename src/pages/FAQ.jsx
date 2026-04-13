@@ -1,110 +1,99 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+
+const faqItems = [
+  {
+    question: "What does this risk score mean?",
+    answer:
+      "The risk score is a simplified indicator of agricultural pressure within a selected region. A higher score suggests that the region may be facing greater overall risk based on the combined influence of market conditions, weather patterns, and land-related factors.",
+  },
+  {
+    question: "How is the risk score calculated?",
+    answer:
+      "The total score is calculated using a weighted model that combines 40% market risk, 35% weather risk, and 25% land risk. These three categories are evaluated together to produce a final score on a 0–99 scale.",
+  },
+  {
+    question: "What data sources does the system use?",
+    answer:
+      "The historical dashboard is based on external agricultural, weather, and land-related data sources used to support the platform’s 2014–2024 analysis. The predictive section for 2025–2030 represents projected model expectations rather than historical records.",
+  },
+  {
+    question: "How often is the data updated?",
+    answer:
+      "The historical dashboard is intended to reflect the available historical data range currently loaded into the platform. Future production versions of the system can be connected to automated update pipelines so the platform can refresh as new source data becomes available.",
+  },
+  {
+    question: "What regions or service areas are currently included?",
+    answer:
+      "The current pilot version of the platform is focused on Kansas and is organized into five regional views: Northwest, Northeast, Central, Southwest, and Southeast. The system is structured so that future expansion to additional states or service areas can be added later.",
+  },
+  {
+    question: "How accurate are the predictions of the model?",
+    answer:
+      "The predictive results are estimates based on the platform’s weighted risk model and projected assumptions for future conditions. Prediction quality depends on the reliability of the input factors, the consistency of the model’s weighting structure, the availability of future data, and how closely real-world events match forecasted trends.",
+  },
+  {
+    question: "What does each risk level category mean?",
+    answer:
+      "Market risk reflects commodity price movement and economic pressure. Weather risk reflects environmental instability such as drought or climate variability. Land risk reflects land value pressure and related property conditions. Together, these categories provide a more complete picture of agricultural risk.",
+  },
+  {
+    question: "How can I use this tool in real life?",
+    answer:
+      "This tool can be used to review regional agricultural conditions, compare one region against another, identify where risk is increasing over time, and support planning discussions based on both historical patterns and projected future trends.",
+  },
+  {
+    question: "Why are some regions riskier than others?",
+    answer:
+      "Some regions score higher because they experience stronger pressure in one or more of the three major categories. For example, one area may be more affected by weather instability, while another may experience stronger market or land-related pressure.",
+  },
+  {
+    question: "Can I compare multiple regions at once?",
+    answer:
+      "The current comparative analysis page is designed for side-by-side comparison between two regions at a time. This allows users to review projected differences more clearly without overcrowding the page.",
+  },
+  {
+    question: "How do I navigate the pages of the tool?",
+    answer:
+      "The Home page introduces the platform and explains its purpose. The Dashboard page presents historical data from 2014–2024. The Comparative Analysis page focuses on projected 2025–2030 outcomes. The FAQ page explains common questions, and the About page introduces the project and team roles.",
+  },
+];
 
 function FAQ() {
-  const [selectedRegion, setSelectedRegion] = useState("Northeast");
-  const [openQuestion, setOpenQuestion] = useState(null);
+  const [openIndex, setOpenIndex] = useState(0);
 
-  const regions = [
-    "Northeast",
-    "Northwest",
-    "Southeast",
-    "Southwest",
-    "Central",
-    "Kansas",
-  ];
-
-  const faqItems = [
-    {
-      question: "How much weather instability am I willing to tolerate?",
-      answer:
-        "This question helps users decide how comfortable they are with environmental uncertainty. Regions with higher weather-related risk may experience more disruption, so users who value stability may prefer regions with lower weather scores.",
-    },
-    {
-      question: "Is land stability more important to me than market flexibility?",
-      answer:
-        "Some users may care more about long-term land consistency, while others may accept land-related uncertainty if market conditions are stronger. This question helps users decide what matters more to their strategy.",
-    },
-    {
-      question: "Do I prefer lower total risk even if growth potential is smaller?",
-      answer:
-        "Lower-risk regions may provide greater stability, but some higher-risk regions may offer stronger upside depending on market and environmental conditions. This question helps users think about risk versus opportunity.",
-    },
-    {
-      question: "Which risk factor matters most to my decision?",
-      answer:
-        "Not every user will value the same thing. Some may prioritize weather stability, others may focus on land consistency, while some may care most about market price movement. This question helps identify the user's top priority.",
-    },
-    {
-      question: "Would I rather choose a balanced region or a region strong in only one category?",
-      answer:
-        "A balanced region may offer more overall stability, while another region may perform very well in one category but poorly in another. This question helps users think about whether they want consistency or a more specialized advantage.",
-    },
-  ];
-
-  const toggleQuestion = (index) => {
-    setOpenQuestion(openQuestion === index ? null : index);
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
-    <div className="page-section">
-      <h1>Frequently Asked Questions</h1>
-      <p className="page-intro">
-        Select a region, then review the questions below to help determine which
-        region may be the best fit based on your goals and risk preferences.
-      </p>
+    <div className="page-container">
+      <section className="content-section">
+        <div className="section-heading">
+          <h3>Frequently Asked Questions</h3>
+          <p>
+            This section provides a professional overview of the platform, the
+            scoring model, the predictive analysis approach, and the overall
+            navigation of the tool.
+          </p>
+        </div>
 
-      <div className="faq-region-picker">
-        <label htmlFor="faq-region-select">Choose a Region:</label>
-        <select
-          id="faq-region-select"
-          value={selectedRegion}
-          onChange={(e) => {
-            setSelectedRegion(e.target.value);
-            setOpenQuestion(null);
-          }}
-        >
-          {regions.map((region) => (
-            <option key={region} value={region}>
-              {region}
-            </option>
+        <div className="faq-list">
+          {faqItems.map((item, index) => (
+            <div key={index} className="faq-item">
+              <button className="faq-question" onClick={() => toggleFAQ(index)}>
+                <span>{item.question}</span>
+                <span>{openIndex === index ? "−" : "+"}</span>
+              </button>
+
+              {openIndex === index && (
+                <div className="faq-answer">
+                  <p>{item.answer}</p>
+                </div>
+              )}
+            </div>
           ))}
-        </select>
-      </div>
-
-      <div className="card faq-selected-region">
-        <h3>Selected Region: {selectedRegion}</h3>
-        <p>
-          These questions are the same for every region and are meant to guide
-          users as they think through which region best matches their priorities.
-        </p>
-      </div>
-
-      <div className="faq-list">
-        {faqItems.map((item, index) => (
-          <div key={index} className="card faq-item">
-            <button
-              className="faq-question-button"
-              onClick={() => toggleQuestion(index)}
-            >
-              <span>{item.question}</span>
-              <span>{openQuestion === index ? "−" : "+"}</span>
-            </button>
-
-            {openQuestion === index && (
-              <div className="faq-answer">
-                <p>{item.answer}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="button-row">
-        <Link to="/about" className="main-button">
-          Next: About Us
-        </Link>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

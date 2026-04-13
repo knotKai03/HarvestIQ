@@ -1,49 +1,63 @@
 function About() {
   const teamMembers = [
     {
-      name: "Group Member A",
-      role: "Team Lead",
-      contribution:
-        "Led the direction of the project, helped organize team priorities, coordinated work across phases, and made sure the group stayed aligned on the overall HarvestIQ vision and project goals.",
+      name: "Team Lead",
+      role: "Project Coordination and Oversight",
+      details:
+        "Managed project planning, team alignment, deliverables, and communication to ensure the platform stayed organized and on track.",
     },
     {
-      name: "Group Member B",
-      role: "Back-End Developer",
-      contribution:
-        "Worked on the back-end development, data flow, API integration, and the connection between the collected data and the platform so that real risk data can be delivered to the front end.",
+      name: "Back-End Developer",
+      role: "Data Processing and Risk Logic",
+      details:
+        "Worked on data handling, risk model logic, and system-side processes that support the platform’s agricultural intelligence outputs.",
     },
     {
-      name: "Group Member C",
-      role: "Systems Integrator / Documentor",
-      contribution:
-        "Helped with system organization, integration planning, project structure, documentation, and making sure the technical and written parts of the project remained consistent and presentation-ready.",
+      name: "Systems Integrator / Documentation",
+      role: "Architecture and Reporting",
+      details:
+        "Supported integration planning, system documentation, sprint reporting, and written project materials.",
     },
     {
-      name: "Group Member D",
-      role: "Front-End Developer",
-      contribution:
-        "Designed and built the front-end website experience for HarvestIQ, including the home page, dashboard, comparison page, FAQ page, and about page, while focusing on layout, usability, and making the platform visually clear and interactive.",
+      name: "Front-End Developer",
+      role: "User Interface and Visualization",
+      details:
+        "Designed the website experience, including the dashboard, comparative analysis, FAQ layout, content presentation, and styling.",
     },
   ];
 
   return (
-    <div className="page-section">
-      <h1>About Us</h1>
-      <p className="page-intro">
-        We are The Encryptors, the creators of HarvestIQ. As a team, we combined
-        our individual strengths to build a platform focused on agricultural risk
-        analysis, regional comparison, and decision support.
-      </p>
+    <div className="page-container">
+      <section className="content-section">
+        <div className="section-heading">
+          <h3>About the Project</h3>
+          <p>
+            HarvestIQ was developed as an AI-driven agricultural risk intelligence
+            platform focused on regional analysis within Kansas. The platform was
+            designed to turn agricultural data into a more readable, structured,
+            and professional dashboard experience.
+          </p>
+        </div>
 
-      <div className="about-grid">
-        {teamMembers.map((member, index) => (
-          <div key={index} className="card team-card">
-            <h3>{member.name}</h3>
-            <p className="team-role">{member.role}</p>
-            <p>{member.contribution}</p>
-          </div>
-        ))}
-      </div>
+        <div className="about-highlight">
+          <h4>The Encryptors</h4>
+          <p>
+            Our team collaborated across front-end development, back-end logic,
+            system design, documentation, and project coordination to build a
+            platform that communicates agricultural risk in a more accessible way.
+          </p>
+        </div>
+
+        <div className="team-grid">
+          {teamMembers.map((member, index) => (
+            <div key={index} className="team-card">
+              <h4>{member.name}</h4>
+              <h5>{member.role}</h5>
+              <p>{member.details}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
