@@ -30,7 +30,7 @@ jobs:
           if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
           pip install pytest || true
 
-      - name: Run Python tests (safe)
+      - name: Run Python tests
         run: |
           if [ -d backend ]; then pytest backend || echo "No tests found"; fi
 
@@ -43,7 +43,7 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Compile Java frontend (safe)
+      - name: Compile Java frontend
         run: |
           if [ -d frontend ]; then
             find frontend -name "*.java" > sources.txt
@@ -67,4 +67,4 @@ jobs:
 
     steps:
       - name: Deployment placeholder
-        run: echo "Deployment step ready (will connect to server later)"
+        run: echo "Deployment step ready"
