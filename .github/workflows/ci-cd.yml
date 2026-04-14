@@ -35,7 +35,7 @@ jobs:
           if [ -d backend ]; then pytest backend || echo "No tests found"; fi
 
       # -------------------
-      # Frontend (Node.js / Vite)
+      # Frontend (Node.js - ROOT)
       # -------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -43,20 +43,10 @@ jobs:
           node-version: "18"
 
       - name: Install frontend dependencies
-        run: |
-          if [ -f frontend/package.json ]; then
-            cd frontend
-            npm install
-          else
-            echo "No frontend package.json found"
-          fi
+        run: npm install
 
       - name: Build frontend
-        run: |
-          if [ -f frontend/package.json ]; then
-            cd frontend
-            npm run build || echo "No build script found"
-          fi
+        run: npm run build
 
       # -------------------
       # Docker build (backend only)
