@@ -35,23 +35,27 @@ jobs:
           if [ -d backend ]; then pytest backend || echo "No tests found"; fi
 
       # -------------------
-      # Java Frontend
+      # Frontend (Node.js / Vite)
       # -------------------
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          distribution: "temurin"
-          java-version: "17"
+          node-version: "18"
 
-      - name: Compile Java frontend
+      - name: Install frontend dependencies
         run: |
-          if [ -d frontend ]; then
-            find frontend -name "*.java" > sources.txt
-            if [ -s sources.txt ]; then
-              javac @sources.txt
-            else
-              echo "No Java files found"
-            fi
+          if [ -f frontend/package.json ]; then
+            cd frontend
+            npm install
+          else
+            echo "No frontend package.json found"
+          fi
+
+      - name: Build frontend
+        run: |
+          if [ -f frontend/package.json ]; then
+            cd frontend
+            npm run build || echo "No build script found"
           fi
 
       # -------------------
