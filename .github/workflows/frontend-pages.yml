@@ -62,20 +62,12 @@ jobs:
           destination_dir: previews/pr-${{ github.event.number }}
           keep_files: true
 
-      - name: Comment preview URL
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const pr = context.payload.pull_request.number;
-            const repo = context.repo.repo;
-            const owner = context.repo.owner;
-            const url = `https://${owner}.github.io/${repo}/previews/pr-${pr}/`;
-            github.rest.issues.createComment({
-              owner,
-              repo,
-              issue_number: pr,
-              body: `Preview deployed: ${url}`
-            });
+      - name: Print preview URL
+        run: |
+          pr=${{ github.event.number }}
+          owner=${{ github.repository_owner }}
+          repo=${{ github.event.repository.name }}
+          echo "Preview deployed: https://${owner}.github.io/${repo}/previews/pr-${pr}/"
 
   deploy-prod:
     needs: build
