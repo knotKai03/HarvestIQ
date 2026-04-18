@@ -35,40 +35,7 @@ jobs:
       - name: Build
         run: npm run build
 
-  deploy-preview:
-    needs: build
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install deps & build
-        run: |
-          npm ci
-          npm run build
-
-      - name: Deploy preview to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: gh-pages
-          destination_dir: previews/pr-${{ github.event.number }}
-          keep_files: true
-
-      - name: Print preview URL
-        run: |
-          pr=${{ github.event.number }}
-          owner=${{ github.repository_owner }}
-          repo=${{ github.event.repository.name }}
-          echo "Preview deployed: https://${owner}.github.io/${repo}/previews/pr-${pr}/"
-
+  
   deploy-prod:
     needs: build
     if: github.ref == 'refs/heads/main'
