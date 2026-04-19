@@ -370,11 +370,6 @@ The user is comparing two Kansas regions side by side.
 - Rank Label           : {db.get('data', {}).get('rank_label')}
 - Regional Rank        : {db.get('data', {}).get('region_rank')} of 5
 - Risk Info            : {db.get('data', {}).get('risk_info')}
-
-Individual Factor Scores (0-99, higher = more risk):
-- Weather Risk Score   : {factors.get('weather', {}).get('weather_score')}
-- Market Risk Score    : {factors.get('market',  {}).get('market_score')}
-- Land Risk Score      : {factors.get('land',    {}).get('land_score')}
  
 Score difference (A minus B): {c.get('delta')}
 Higher-risk region: {c.get('higher_risk_region')}
@@ -395,5 +390,7 @@ Write 2-3 short plain-English paragraphs (no bullet points, under 200 words):
         )
         return {"status": "success", "explanation": msg.content[0].text}
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(500, str(e))
  
