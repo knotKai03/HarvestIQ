@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API = "http://localhost:8000";
+const API = "harvestiq-production.up.railway.app";
 
 async function apiFetch(path) {
   const res = await fetch(API + path);

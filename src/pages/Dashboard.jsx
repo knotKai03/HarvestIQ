@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import KansasMap from "../components/KansasMap";
 import RiskTrendChart from "../components/RiskTrendChart";
 
-const API = "http://localhost:8000";
+const API = "harvestiq-production.up.railway.app";
 
 const mockFactorData = {
   Northwest:  { market: 64, weather: 72, land: 55 },
