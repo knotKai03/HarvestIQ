@@ -5,7 +5,7 @@ function Home() {
     <div className="page-container">
       <section className="hero-panel">
         <div className="hero-content">
-          <span className="hero-tag">Kansas Pilot Platform</span>
+          <span className="hero-tag"> Midwestern Agricultural Intelligence Platform</span>
           <h2>Smarter Agricultural Risk Monitoring for Midwestern States</h2>
           <p>
             HarvestIQ is an AI-Driven agricultural risk intellgience platform
