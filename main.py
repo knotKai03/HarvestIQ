@@ -7,7 +7,7 @@ import anthropic
 import os
 from typing import Optional
 from dotenv import load_dotenv
-
+#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 - token
 load_dotenv()
 
 app = FastAPI(title = "HarvestIQ", version ="1.0.0")
@@ -59,7 +59,7 @@ def get_conn():
         with open("snowflake_key.pem", "rb") as key_file:
             key_data = key_file.read()
     else:
-        key_data = os.environ["SNOWFLAKE_PRIVATE_KEY"].encode()
+        key_data = os.environ["SNOWFLAKE_PRIVATE_KEY"].replace("\\n", "\n").encode()
 
     private_key = serialization.load_pem_private_key(
         key_data,
