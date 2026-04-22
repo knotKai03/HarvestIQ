@@ -7,7 +7,7 @@ import anthropic
 import os
 from typing import Optional
 from dotenv import load_dotenv
-#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 - token
+
 load_dotenv()
 
 app = FastAPI(title = "HarvestIQ", version ="1.0.0")
