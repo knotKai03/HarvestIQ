@@ -6,13 +6,13 @@ function Home() {
       <section className="hero-panel">
         <div className="hero-content">
           <span className="hero-tag">Kansas Pilot Platform</span>
-          <h2>Smarter Agricultural Risk Monitoring for Kansas Regions</h2>
+          <h2>Smarter Agricultural Risk Monitoring for Midwestern States</h2>
           <p>
-            HarvestIQ is an AI-driven agricultural risk intelligence platform
-            designed to present agricultural risk in a clear, professional, and
-            decision-friendly format. The platform combines market, weather, and
+            HarvestIQ is an AI-Driven agricultural risk intellgience platform
+            designed to present agricultural risk in a clear, professional, and 
+            decision-friendly format. The platform combines market, weather, and 
             land-based indicators to help users better understand regional
-            agricultural pressure across Kansas.
+            agricultural pressure across Midwestern states.
           </p>
 
           <div className="hero-actions">
@@ -32,7 +32,7 @@ function Home() {
           <p>
             The purpose of HarvestIQ is to organize agricultural data into a
             readable intelligence platform that allows users to review regional
-            risk levels, compare Kansas regions, and understand long-term trends.
+            risk levels, compare Midwestern states, and understand long-term trends.
           </p>
         </div>
 
@@ -48,7 +48,7 @@ function Home() {
           <article className="feature-card">
             <h4>Historical Trend Review</h4>
             <p>
-              Examine agricultural risk movement from 2014–2024 using a clean,
+              Examine agricultural risk movement from a 10 year period by using a clean,
               professional trend visualization.
             </p>
           </article>
@@ -56,7 +56,7 @@ function Home() {
           <article className="feature-card">
             <h4>Regional Comparison</h4>
             <p>
-              Compare Kansas regions side by side to identify which areas show
+              Compare states and regions side by side to identify which areas show
               higher or lower agricultural risk and why.
             </p>
           </article>
