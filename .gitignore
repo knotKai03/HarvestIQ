@@ -1,14 +1,18 @@
-#Credentials
-.env 
+# Credentials
+.env
 
-#Virtuial environment
-venv/ 
+# Virtual environment
+venv/
 
-#Python cache files
+# Python cache files
 __pycache__/
-*.pyc 
-*.pyo 
+*.pyc
+*.pyo
 
-#Key Files
+# Key files
 snowflake_key.pem
 snowflake_key_pub.pem
+
+# Frontend
+node_modules/
+dist/
