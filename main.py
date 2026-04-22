@@ -53,24 +53,32 @@ def validate(region: str):
 def get_conn():
     from cryptography.hazmat.primitives import serialization
 
-    with open("snowflake_key.pem", "rb") as key_file:
-        private_key = serialization.load_pem_private_key(
-            key_file.read(),
-            password=None,
-        )
-    
+    # Local development — use key file
+    # Production (Railway) — use environment variable
+    if os.path.exists("snowflake_key.pem"):
+        with open("snowflake_key.pem", "rb") as key_file:
+            key_data = key_file.read()
+    else:
+        key_data = os.environ["SNOWFLAKE_PRIVATE_KEY"].encode()
+
+    private_key = serialization.load_pem_private_key(
+        key_data,
+        password=None,
+    )
+
     private_key_bytes = private_key.private_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption()
     )
+
     return snowflake.connector.connect(
-        user = os.environ["SNOWFLAKE_USER"],
-        private_key = private_key_bytes,
-        account = os.environ["SNOWFLAKE_ACCOUNT"],
-        warehouse = os.environ["SNOWFLAKE_WAREHOUSE"],
-        database = os.environ["SNOWFLAKE_DATABASE"],
-        schema = os.environ["SNOWFLAKE_SCHEMA"],
+        user=os.environ["SNOWFLAKE_USER"],
+        private_key=private_key_bytes,
+        account=os.environ["SNOWFLAKE_ACCOUNT"],
+        warehouse=os.environ["SNOWFLAKE_WAREHOUSE"],
+        database=os.environ["SNOWFLAKE_DATABASE"],
+        schema=os.environ["SNOWFLAKE_SCHEMA"],
     )
 
 def run_query(sql: str, params: tuple = ()) -> list[dict]:
