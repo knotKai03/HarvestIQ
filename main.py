@@ -59,7 +59,9 @@ def get_conn():
         with open("snowflake_key.pem", "rb") as key_file:
             key_data = key_file.read()
     else:
-        key_data = os.environ["SNOWFLAKE_PRIVATE_KEY"].replace("\\n", "\n").encode()
+        import base64
+        key_b64 = os.environ["SNOWFLAKE_PRIVATE_KEY_B64"]
+        key_data = base64.b64decode(key_b64)
 
     private_key = serialization.load_pem_private_key(
         key_data,
