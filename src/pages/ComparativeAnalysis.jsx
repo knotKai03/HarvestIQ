@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API = "harvest-as265z22c-knotkai03s-projects.vercel.app";
+const API = "https://harvestiq-production.up.railway.app";
 
 async function apiFetch(path) {
   const res = await fetch(API + path);
