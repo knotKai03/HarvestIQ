@@ -117,7 +117,7 @@ select {
 
 /* HERO */
 .hero-panel {
-  background: linear-gradient(135deg, rgba(255,255,255,0.97), rgba(247,251,248,0.94));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(247, 251, 248, 0.94));
   border-radius: 28px;
   box-shadow: var(--shadow-main);
   padding: 70px 60px;
@@ -324,7 +324,7 @@ select {
   margin-bottom: 20px;
 }
 
-.kansas-visual-map {
+.state-map-svg-wrapper {
   width: 100%;
   background: linear-gradient(135deg, #f8fbf8, #eef5ef);
   border: 1px solid var(--border-soft);
@@ -332,42 +332,51 @@ select {
   padding: 18px;
   margin-bottom: 20px;
   overflow: hidden;
+  min-height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.kansas-svg {
+.state-svg-inline {
   width: 100%;
+  max-width: 560px;
   height: auto;
   display: block;
 }
 
-.map-shape {
-  fill: #e7f2e9;
-  stroke: #6b8d73;
+.state-outline-path {
+  fill: none;
+  stroke: #2a2a2a;
+  stroke-width: 6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.svg-region {
+  fill: rgba(47, 107, 61, 0.12);
+  stroke: rgba(47, 107, 61, 0.35);
   stroke-width: 2.5;
   cursor: pointer;
-  transition: fill 0.25s ease, transform 0.25s ease;
+  transition: all 0.25s ease;
 }
 
-.map-shape:hover {
-  fill: #cfe4d3;
+.svg-region:hover {
+  fill: rgba(47, 107, 61, 0.2);
+  stroke: rgba(47, 107, 61, 0.55);
 }
 
-.map-shape.active {
-  fill: var(--green-primary);
+.svg-region.active {
+  fill: rgba(47, 107, 61, 0.75);
   stroke: #244d2d;
 }
 
-.kansas-outline {
-  fill: none;
-  stroke: #46624d;
-  stroke-width: 4;
-  pointer-events: none;
-}
-
-.map-label {
+.svg-region-label {
   font-size: 18px;
   font-weight: 700;
-  fill: #24422c;
+  fill: #1f3928;
+  text-anchor: middle;
+  dominant-baseline: middle;
   cursor: pointer;
   user-select: none;
 }
@@ -541,6 +550,12 @@ select {
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
   margin-top: 4px;
+  margin-bottom: 18px;
+}
+
+.comparison-controls-secondary {
+  grid-template-columns: 1fr;
+  max-width: 32%;
 }
 
 .control-block {
@@ -716,6 +731,10 @@ select {
   .stat-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .comparison-controls-secondary {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 900px) {
@@ -774,7 +793,12 @@ select {
     align-items: flex-start;
   }
 
-  .map-label {
-    font-size: 15px;
+  .state-map-svg-wrapper {
+    min-height: 280px;
+    padding: 12px;
+  }
+
+  .svg-region-label {
+    font-size: 14px;
   }
 }
