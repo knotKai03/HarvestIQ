@@ -8,7 +8,7 @@ function Home() {
           <span className="hero-tag"> Midwestern Agricultural Intelligence Platform</span>
           <h2>Smarter Agricultural Risk Monitoring for Midwestern States</h2>
           <p>
-            HarvestIQ is an AI-Driven agricultural risk intellgience platform
+            HarvestIQ is an AI-Driven agricultural risk intelligence platform
             designed to present agricultural risk in a clear, professional, and 
             decision-friendly format. The platform combines market, weather, and 
             land-based indicators to help users better understand regional
