@@ -32,15 +32,6 @@ const REGION_COLORS = {
 const REGION_LIST = ["Northwest", "Northeast", "Central", "Southwest", "Southeast"];
 const YEARS = [2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
 
-// ── Mock factor data (replace when ML individual score tables are ready) ───────
-const mockFactorData = {
-  Northwest:  { market: 64, weather: 72, land: 55 },
-  Northeast:  { market: 57, weather: 60, land: 62 },
-  Central:    { market: 59, weather: 63, land: 58 },
-  Southwest:  { market: 66, weather: 75, land: 51 },
-  Southeast:  { market: 55, weather: 59, land: 60 },
-};
-
 // ── Info card component ────────────────────────────────────────────────────────
 function InfoCard({ title, value, subtitle, accent }) {
   return (
@@ -208,7 +199,7 @@ function RegionalMapCard({ selectedState, selectedRegion, onRegionSelect, select
 export default function Dashboard() {
   const [selectedState,  setSelectedState]  = useState("Kansas");
   const [selectedRegion, setSelectedRegion] = useState("Central");
-  const [selectedYear,   setSelectedYear]   = useState(2024);  // default to most recent historical year
+  const [selectedYear,   setSelectedYear]   = useState(2024);
 
   // ── Live API state ───────────────────────────────────────────────────────────
   const [history,    setHistory]    = useState([]);
@@ -217,46 +208,47 @@ export default function Dashboard() {
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
 
-  // ── Fetch historical data when region changes (Kansas only) ─────────────────
+  // ── Fetch data when region or state changes ──────────────────────────────────
   useEffect(() => {
-    if (selectedState !== "Kansas") {
-      setLoading(false);
-      setHistory([]);
-      setAiSummary("");
-      return;
-    }
-
-    async function loadRegion() {
+    async function loadData() {
       setLoading(true);
       setError(null);
       setAiSummary("");
-
-      let currentHistory = [];
+      setHistory([]);
 
       try {
-        const histRes = await apiFetch(`/risk/${selectedRegion}/history`);
-        currentHistory = histRes.history || [];
-        // Sort ascending by year for chart
-        currentHistory.sort((a, b) => a.year - b.year);
-        setHistory(currentHistory);
+        let rows = [];
+
+        if (selectedState === "Kansas") {
+          const res = await apiFetch(`/risk/${selectedRegion}/history`);
+          rows = res.history || [];
+        } else {
+          // Iowa — uses new endpoint
+          const res = await apiFetch(`/iowa/${selectedRegion}/history`);
+          rows = res.history || [];
+        }
+
+        // Ensure sorted ascending by year
+        rows.sort((a, b) => a.year - b.year);
+        setHistory(rows);
+
+        // Fire AI summary using most recent year
+        if (rows.length > 0) {
+          loadAiSummary(rows, selectedState, selectedRegion);
+        }
       } catch (e) {
         setError("Could not load data. Is the API running?");
         console.error(e);
       } finally {
         setLoading(false);
       }
-
-      if (currentHistory.length > 0) {
-        loadAiSummary(currentHistory);
-      }
     }
-    loadRegion();
+    loadData();
   }, [selectedRegion, selectedState]);
 
-  async function loadAiSummary(hist) {
+  async function loadAiSummary(hist, state, region) {
     setAiLoading(true);
     try {
-      // Get the most recent year's data for AI context
       const latest = hist[hist.length - 1];
       const res = await fetch(`${API}/ai/explain`, {
         method:  "POST",
@@ -264,12 +256,13 @@ export default function Dashboard() {
         body: JSON.stringify({
           explanation_type: "region",
           region_data: {
-            region_standard:      selectedRegion,
+            region_standard:      region,
             predicted_risk_score: latest?.risk_score,
             risk_level:           latest?.risk_level,
-            risk_info:            latest?.risk_description,
+            risk_info:            latest?.risk_description || "",
             region_rank:          null,
             rank_label:           null,
+            state:                state,
           },
           history: hist,
         }),
@@ -283,30 +276,42 @@ export default function Dashboard() {
     }
   }
 
-  // ── Get selected year's data from history ──────────────────────────────────
+  // ── Get selected year's data ────────────────────────────────────────────────
   const selectedYearData = useMemo(() => {
     return history.find((item) => item.year === selectedYear) || null;
   }, [history, selectedYear]);
 
-  // ── Factor scores ──────────────────────────────────────────────────────────
-  const factors = mockFactorData[selectedRegion] || { market: 0, weather: 0, land: 0 };
+  // ── Chart data ──────────────────────────────────────────────────────────────
+  const chartData = history.map((item) => {
+    if (selectedState === "Iowa") {
+      return {
+        year:    item.year,
+        total:   item.risk_score,
+        weather: item.weather_score,
+        market:  item.market_score,
+        land:    item.land_score,
+      };
+    }
+    // Kansas — total from Snowflake, factors still mock until ML tables ready
+    return {
+      year:    item.year,
+      total:   item.risk_score,
+    };
+  });
 
-  // ── Chart data — sorted ascending by year ─────────────────────────────────
-  const chartData = history.map((item) => ({
-    year:    item.year,
-    total:   item.risk_score,
-    weather: factors.weather,
-    market:  factors.market,
-    land:    factors.land,
-  }));
+  // ── Score card values for selected year ─────────────────────────────────────
+  const displayTotal   = selectedYearData?.risk_score   ?? null;
+  const displayWeather = selectedYearData?.weather_score ?? null;
+  const displayMarket  = selectedYearData?.market_score  ?? null;
+  const displayLand    = selectedYearData?.land_score    ?? null;
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-hero">
         <h1>Historical Risk Dashboard</h1>
         <p>
-          Review regional agricultural risk trends across Kansas using
-          historical data from 2014 to 2024. Iowa data coming soon.
+          Review regional agricultural risk trends across Kansas and Iowa
+          using historical data from 2014 to 2024.
         </p>
       </div>
 
@@ -333,7 +338,7 @@ export default function Dashboard() {
                 }}
               >
                 <option value="Kansas">Kansas</option>
-                <option value="Iowa">Iowa (Coming Soon)</option>
+                <option value="Iowa">Iowa</option>
               </select>
             </div>
 
@@ -351,10 +356,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Loading / error states */}
-          {loading && selectedState === "Kansas" && (
+          {loading && (
             <div className="dashboard-summary-card">
-              <p>Loading {selectedRegion} data...</p>
+              <p>Loading {selectedRegion} {selectedState} data...</p>
             </div>
           )}
 
@@ -371,15 +375,14 @@ export default function Dashboard() {
                 <p><strong>State:</strong> {selectedState}</p>
                 <p><strong>Region:</strong> {selectedRegion}</p>
                 <p><strong>Year:</strong> {selectedYear}</p>
-                {selectedState === "Kansas" && selectedYearData && (
+                {selectedYearData ? (
                   <>
-                    <p><strong>Risk Score:</strong> {selectedYearData.risk_score}</p>
-                    <p><strong>Risk Level:</strong> {selectedYearData.risk_level}</p>
+                    <p><strong>Risk Score:</strong> {selectedYearData.risk_score ?? "—"}</p>
+                    <p><strong>Risk Level:</strong> {selectedYearData.risk_level ?? "—"}</p>
                   </>
-                )}
-                {selectedState === "Iowa" && (
+                ) : (
                   <p style={{ color: "#888", fontStyle: "italic" }}>
-                    Iowa live data coming soon.
+                    No data available for {selectedYear}.
                   </p>
                 )}
               </div>
@@ -387,25 +390,25 @@ export default function Dashboard() {
               <div className="cards-grid">
                 <InfoCard
                   title="Total Risk"
-                  value={selectedState === "Kansas" ? selectedYearData?.risk_score : "—"}
-                  subtitle={`Risk score for ${selectedRegion} in ${selectedYear}.`}
+                  value={displayTotal}
+                  subtitle={`Composite risk for ${selectedRegion} in ${selectedYear}.`}
                   accent="accent-total"
                 />
                 <InfoCard
                   title="Weather Risk"
-                  value={factors.weather}
+                  value={displayWeather}
                   subtitle="Climate and environmental pressure."
                   accent="accent-weather"
                 />
                 <InfoCard
                   title="Market Risk"
-                  value={factors.market}
-                  subtitle="Commodity and pricing pressure."
+                  value={displayMarket}
+                  subtitle={selectedState === "Iowa" ? "Statewide market pressure." : "Commodity and pricing pressure."}
                   accent="accent-market"
                 />
                 <InfoCard
                   title="Land Risk"
-                  value={factors.land}
+                  value={displayLand}
                   subtitle="Land value pressure."
                   accent="accent-land"
                 />
@@ -415,21 +418,21 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── AI Summary — full width centered below the grid ── */}
-      {selectedState === "Kansas" && !loading && (
+      {/* AI Summary — full width centered */}
+      {!loading && (
         <div className="dashboard-summary-card ai-panel" style={{ marginTop: "24px" }}>
           <h3 style={{ textAlign: "center", marginBottom: "12px" }}>⚡ AI Analysis</h3>
           {aiLoading
             ? <p style={{ textAlign: "center" }}>Analyzing with Claude...</p>
             : <p style={{ textAlign: "center", maxWidth: "800px", margin: "0 auto" }}>
-                {aiSummary || "Add Anthropic credits to enable AI summaries."}
+                {aiSummary || "AI summary will appear here after data loads."}
               </p>
           }
         </div>
       )}
 
-      {/* ── Chart — sorted ascending 2014 to 2024 ── */}
-      {selectedState === "Kansas" && chartData.length > 0 && (
+      {/* Chart */}
+      {chartData.length > 0 && (
         <div className="chart-section">
           <div className="chart-card">
             <div className="chart-card-header">
@@ -445,9 +448,11 @@ export default function Dashboard() {
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Line type="monotone" dataKey="total"   stroke="#1f2937" strokeWidth={3} name="Total Risk"   dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" dataKey="weather" stroke="#2f6f52" strokeWidth={2} name="Weather Risk" dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="market"  stroke="#c07b2c" strokeWidth={2} name="Market Risk"  dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="land"    stroke="#7f63b8" strokeWidth={2} name="Land Risk"    dot={{ r: 3 }} />
+                  {selectedState === "Iowa" && <>
+                    <Line type="monotone" dataKey="weather" stroke="#2f6f52" strokeWidth={2} name="Weather Risk" dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="market"  stroke="#c07b2c" strokeWidth={2} name="Market Risk"  dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="land"    stroke="#7f63b8" strokeWidth={2} name="Land Risk"    dot={{ r: 3 }} />
+                  </>}
                 </LineChart>
               </ResponsiveContainer>
             </div>
