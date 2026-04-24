@@ -168,63 +168,53 @@ def fetch_all_kansas_current() -> list[dict]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def fetch_iowa_history(region: str) -> list[dict]:
-    """
-    Historical Iowa data combining all four Iowa tables.
-    Returns one row per year with total, weather, market, and land scores.
-    Market is statewide so same value across all regions per year.
-    """
+  
     iowa_region = to_iowa_db(region)
 
-    # Total risk — region specific
     total_rows = run_query("""
         SELECT Year, TOTAL_RISK_SCORE, TOTAL_RISK_LEVEL
         FROM IOWA_HISTORICAL_TOTAL_RISK
-        WHERE Region = %s
+        WHERE Region = %s AND MONTH_NUM = 12
         ORDER BY Year ASC
     """, (iowa_region,))
 
-    # Weather risk — region specific
     weather_rows = run_query("""
         SELECT Year, WEATHER_RISK_SCORE
         FROM IOWA_HISTORICAL_WEATHER_RISK
-        WHERE Region = %s
+        WHERE Region = %s AND MONTH_NUM = 12
         ORDER BY Year ASC
     """, (iowa_region,))
 
-    # Land risk — region specific
     land_rows = run_query("""
         SELECT Year, LAND_RISK_SCORE
         FROM IOWA_HISTORICAL_LAND_RISK
-        WHERE Region = %s
+        WHERE Region = %s AND MONTH_NUM = 12
         ORDER BY Year ASC
     """, (iowa_region,))
 
-    # Market risk — statewide, one value per year
     market_rows = run_query("""
         SELECT Year, MARKET_RISK_RANK
         FROM IOWA_HISTORICAL_MARKET_RISK
-        WHERE Region = 'Statewide Iowa'
+        WHERE Region = 'Statewide Iowa' AND MONTH_NUM = 12
         ORDER BY Year ASC
     """)
 
-    # Build lookup dicts by year
     weather_by_year = {r["year"]: r.get("weather_risk_score") for r in weather_rows}
     land_by_year    = {r["year"]: r.get("land_risk_score")    for r in land_rows}
     market_by_year  = {r["year"]: r.get("market_risk_rank")   for r in market_rows}
 
-    # Combine into one row per year
     combined = []
     for r in total_rows:
         year = r["year"]
         combined.append({
-            "year":              year,
-            "risk_score":        r.get("total_risk_score"),
-            "risk_level":        r.get("total_risk_level"),
-            "weather_score":     weather_by_year.get(year),
-            "market_score":      market_by_year.get(year),
-            "land_score":        land_by_year.get(year),
-            "region_standard":   region,
-            "state":             "Iowa",
+            "year":            year,
+            "risk_score":      r.get("total_risk_score"),
+            "risk_level":      r.get("total_risk_level"),
+            "weather_score":   weather_by_year.get(year),
+            "market_score":    market_by_year.get(year),
+            "land_score":      land_by_year.get(year),
+            "region_standard": region,
+            "state":           "Iowa",
         })
 
     return combined
