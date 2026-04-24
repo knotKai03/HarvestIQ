@@ -168,7 +168,13 @@ def fetch_all_kansas_current() -> list[dict]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def fetch_iowa_history(region: str) -> list[dict]:
-  
+    """
+    Iowa historical data filtered to December per year where applicable.
+    - Total risk: filter by MONTH_NUM = 12
+    - Weather risk: filter by Month = 'Dec'
+    - Market risk: filter by Month = 'Dec' (statewide)
+    - Land risk: no month filter needed (annual data only)
+    """
     iowa_region = to_iowa_db(region)
 
     total_rows = run_query("""
@@ -181,21 +187,21 @@ def fetch_iowa_history(region: str) -> list[dict]:
     weather_rows = run_query("""
         SELECT Year, WEATHER_RISK_SCORE
         FROM IOWA_HISTORICAL_WEATHER_RISK
-        WHERE Region = %s AND MONTH_NUM = 12
+        WHERE Region = %s AND Month = 'Dec'
         ORDER BY Year ASC
     """, (iowa_region,))
 
     land_rows = run_query("""
         SELECT Year, LAND_RISK_SCORE
         FROM IOWA_HISTORICAL_LAND_RISK
-        WHERE Region = %s AND MONTH_NUM = 12
+        WHERE Region = %s
         ORDER BY Year ASC
     """, (iowa_region,))
 
     market_rows = run_query("""
         SELECT Year, MARKET_RISK_RANK
         FROM IOWA_HISTORICAL_MARKET_RISK
-        WHERE Region = 'Statewide Iowa' AND MONTH_NUM = 12
+        WHERE Region = 'Statewide Iowa' AND Month = 'Dec'
         ORDER BY Year ASC
     """)
 
@@ -218,8 +224,6 @@ def fetch_iowa_history(region: str) -> list[dict]:
         })
 
     return combined
-
-
 # ══════════════════════════════════════════════════════════════════════════════
 # ROUTES
 # ══════════════════════════════════════════════════════════════════════════════
