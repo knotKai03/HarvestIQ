@@ -370,26 +370,34 @@ def ai_explain(req: ExplainRequest):
         if not req.region_data:
             raise HTTPException(400, "region_data required")
  
-        d        = req.region_data
-        hist     = req.history or []
-        state    = d.get("state", "Kansas")
+        d     = req.region_data
+        hist  = req.history or []
+        state = d.get("state", "Kansas")
+
         hist_str = ""
         if hist:
-            lines    = [f"  {r.get('year')}: Score {r.get('risk_score')} ({r.get('risk_level')})"
-                        for r in hist[:5]]
-            hist_str = "Historical scores:\n" + "\n".join(lines)
- 
+            lines = [
+                f"  {r.get('year')}: Total={r.get('risk_score')} ({r.get('risk_level')})"
+                f" | Weather={r.get('weather_score')} | Market={r.get('market_score')} | Land={r.get('land_score')}"
+                for r in hist
+            ]
+            hist_str = "Full historical scores 2014-2024:\n" + "\n".join(lines)
+
+        latest = hist[-1] if hist else {}
+
         prompt = f"""You are an agricultural risk analyst for {state} farmland.
 The user is viewing the historical risk dashboard for {d.get('region_standard')} {state}.
- 
-Risk Data:
-- Composite Risk Score : {d.get('predicted_risk_score') or d.get('risk_score')}
-- Risk Level           : {d.get('risk_level')}
+
+Most Recent Year (2024) — Primary Focus:
+- Composite Risk Score : {latest.get('risk_score') or d.get('predicted_risk_score')}
+- Risk Level           : {latest.get('risk_level') or d.get('risk_level')}
+
 {hist_str}
- 
-Write 2 short plain-English paragraphs (no bullet points, under 160 words):
-1. What this score means practically for farmers and landowners in this region.
-2. Whether risk has improved or worsened over time and one actionable insight."""
+
+Write 3 short plain-English paragraphs (no bullet points, under 220 words):
+1. What the 2024 risk score means practically for farmers and landowners in this region.
+2. Describe the overall trend from 2014 to 2024 — is risk increasing, decreasing, or volatile? Which factor (weather, market, or land) has changed the most over the decade?
+3. One forward-looking actionable insight based on the 10-year trend."""
  
     elif req.explanation_type == "comparison":
         if not req.comparison_data:

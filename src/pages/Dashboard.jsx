@@ -247,34 +247,36 @@ export default function Dashboard() {
   }, [selectedRegion, selectedState]);
 
   async function loadAiSummary(hist, state, region) {
-    setAiLoading(true);
-    try {
-      const latest = hist[hist.length - 1];
-      const res = await fetch(`${API}/ai/explain`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          explanation_type: "region",
-          region_data: {
-            region_standard:      region,
-            predicted_risk_score: latest?.risk_score,
-            risk_level:           latest?.risk_level,
-            risk_info:            latest?.risk_description || "",
-            region_rank:          null,
-            rank_label:           null,
-            state:                state,
-          },
-          history: hist,
-        }),
-      });
-      const json = await res.json();
-      setAiSummary(json.explanation || "");
-    } catch (e) {
-      setAiSummary("AI summary unavailable.");
-    } finally {
-      setAiLoading(false);
-    }
+  setAiLoading(true);
+  try {
+    const latest = hist[hist.length - 1];
+    const oldest = hist[0];
+
+    const res = await fetch(`${API}/ai/explain`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        explanation_type: "region",
+        region_data: {
+          region_standard:      region,
+          predicted_risk_score: latest?.risk_score,
+          risk_level:           latest?.risk_level,
+          risk_info:            latest?.risk_description || "",
+          region_rank:          null,
+          rank_label:           null,
+          state:                state,
+        },
+        history: hist,
+      }),
+    });
+    const json = await res.json();
+    setAiSummary(json.explanation || "");
+  } catch (e) {
+    setAiSummary("AI summary unavailable.");
+  } finally {
+    setAiLoading(false);
   }
+}
 
   // ── Get selected year's data ────────────────────────────────────────────────
   const selectedYearData = useMemo(() => {
