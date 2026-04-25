@@ -34,15 +34,20 @@ function About() {
 
   return (
     <div className="page-container">
-      <section className="about-panel">
+
+      {/* ───── ABOUT PROJECT (OWN WHITE BOX) ───── */}
+      <section className="about-project-card">
         <h2>About the Project</h2>
         <p>
           HarvestIQ was developed as an AI-driven agricultural risk intelligence
-          platform focused on regional analysis within Midwestern States. The platform was
-          designed to turn agricultural data into a more readable, structured,
-          and professional dashboard experience.
+          platform focused on regional analysis within Midwestern States. The
+          platform was designed to turn agricultural data into a more readable,
+          structured, and professional dashboard experience.
         </p>
+      </section>
 
+      {/* ───── ENCRYPTORS (SEPARATE WHITE BOX) ───── */}
+      <section className="content-section">
         <div className="about-highlight">
           <h4>The Encryptors</h4>
           <p>
@@ -52,7 +57,10 @@ function About() {
             way.
           </p>
         </div>
+      </section>
 
+      {/* ───── TEAM GRID (SEPARATE SECTION) ───── */}
+      <section className="content-section">
         <div className="team-grid">
           {teamMembers.map((member, index) => (
             <div key={index} className="team-card">
@@ -66,7 +74,9 @@ function About() {
                   {member.name}
                 </a>
               </h4>
+
               <h5>{member.role}</h5>
+
               <p>{member.details}</p>
 
               <a
@@ -81,6 +91,7 @@ function About() {
           ))}
         </div>
       </section>
+
     </div>
   );
 }
