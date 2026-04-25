@@ -450,11 +450,9 @@ export default function Dashboard() {
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Line type="monotone" dataKey="total"   stroke="#1f2937" strokeWidth={3} name="Total Risk"   dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                  {selectedState === "Iowa" && <>
-                    <Line type="monotone" dataKey="weather" stroke="#2f6f52" strokeWidth={2} name="Weather Risk" dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="market"  stroke="#c07b2c" strokeWidth={2} name="Market Risk"  dot={{ r: 3 }} />
-                    <Line type="monotone" dataKey="land"    stroke="#7f63b8" strokeWidth={2} name="Land Risk"    dot={{ r: 3 }} />
-                  </>}
+                  <Line type="monotone" dataKey="weather" stroke="#2f6f52" strokeWidth={2} name="Weather Risk" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="market"  stroke="#c07b2c" strokeWidth={2} name="Market Risk"  dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="land"    stroke="#7f63b8" strokeWidth={2} name="Land Risk"    dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
