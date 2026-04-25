@@ -210,7 +210,13 @@ def fetch_all_kansas_current() -> list[dict]:
 # ══════════════════════════════════════════════════════════════════════════════
 # IOWA FETCHERS
 # ══════════════════════════════════════════════════════════════════════════════
- 
+def get_risk_level(score):
+    if score is None: return "Unknown"
+    if score >= 75:   return "High"
+    if score >= 50:   return "Moderate"
+    if score >= 25:   return "Low"
+    return "Very Low"
+
 def fetch_iowa_history(region: str) -> list[dict]:
 
     """
@@ -237,7 +243,7 @@ def fetch_iowa_history(region: str) -> list[dict]:
         combined.append({
             "year":            r["year"],
             "risk_score":      r.get("total_risk_score"),
-            "risk_level":      None,
+            "risk_level":      get_risk_level(r.get("total_risk_score")),
             "weather_score":   r.get("weather_risk_score"),
             "market_score":    r.get("market_risk_score"),
             "land_score":      r.get("land_risk_score"),
