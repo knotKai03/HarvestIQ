@@ -298,6 +298,9 @@ export default function Dashboard() {
     return {
       year:    item.year,
       total:   item.risk_score,
+      weather: item.weather_score,
+      market: item.market_score,
+      land: item.land_score,
     };
   });
 
