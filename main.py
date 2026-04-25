@@ -119,33 +119,32 @@ def fetch_kansas_current(region: str) -> dict:
  
  
 def fetch_kansas_weather_scores(region: str) -> list[dict]:
-    """Weather factor scores per year for one Kansas region."""
     return run_query("""
         SELECT YEAR, WEATHER_RISK_SCORE
-        FROM Weather_Factors_Risk_Scores
+        FROM WEATHER_FACTOR_RISK_SCORES
         WHERE REGION = %s
         AND YEAR >= 2014
         ORDER BY YEAR ASC
     """, (to_kansas_db(region),))
- 
- 
+
+
 def fetch_kansas_market_scores(region: str) -> list[dict]:
-    """Market factor scores per year for one Kansas region."""
     return run_query("""
         SELECT YEAR, MARKET_RISK_SCORE
-        FROM Market_Factor_Risk_Scores
+        FROM MARKET_FACTOR_RISK_SCORES
         WHERE REGION = %s
+        AND REGION != 'Kansas_Statewide'
         AND YEAR >= 2014
         ORDER BY YEAR ASC
     """, (to_kansas_db(region),))
- 
- 
+
+
 def fetch_kansas_land_scores(region: str) -> list[dict]:
-    """Land factor scores per year for one Kansas region (2014+)."""
     return run_query("""
         SELECT YEAR, LAND_RISK_SCORE
-        FROM Land_Factor_Risk_Scores
+        FROM LAND_FACTOR_RISK_SCORES
         WHERE REGION = %s
+        AND REGION != 'state_avg'
         AND YEAR >= 2014
         ORDER BY YEAR ASC
     """, (to_kansas_db(region),))
