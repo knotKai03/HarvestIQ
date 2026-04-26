@@ -95,6 +95,10 @@ def run_query(sql: str, params: tuple = ()) -> list[dict]:
         cur.execute(sql, params)
         cols = [c[0].lower() for c in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise
     finally:
         conn.close()
  
