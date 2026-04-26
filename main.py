@@ -126,7 +126,7 @@ def fetch_kansas_weather_scores(region: str) -> list[dict]:
     """Weather factor scores per year for one Kansas region."""
     return run_query("""
         SELECT YEAR, WEATHER_RISK_SCORE
-        FROM WEATHER_FACTORS_RISK_SCORES
+        FROM WEATHER_FACTOR_RISK_SCORES
         WHERE REGION = %s
         AND YEAR >= 2014
         ORDER BY YEAR ASC
