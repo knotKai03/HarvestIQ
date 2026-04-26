@@ -119,32 +119,33 @@ def fetch_kansas_current(region: str) -> dict:
  
  
 def fetch_kansas_weather_scores(region: str) -> list[dict]:
+    """Weather factor scores per year for one Kansas region."""
     return run_query("""
         SELECT YEAR, WEATHER_RISK_SCORE
-        FROM WEATHER_FACTOR_RISK_SCORES
+        FROM WEATHER_FACTORS_RISK_SCORES
         WHERE REGION = %s
         AND YEAR >= 2014
         ORDER BY YEAR ASC
     """, (to_kansas_db(region),))
-
-
+ 
+ 
 def fetch_kansas_market_scores(region: str) -> list[dict]:
+    """Market factor scores per year for one Kansas region."""
     return run_query("""
         SELECT YEAR, MARKET_RISK_SCORE
         FROM MARKET_FACTOR_RISK_SCORES
         WHERE REGION = %s
-        AND REGION != 'Kansas_Statewide'
         AND YEAR >= 2014
         ORDER BY YEAR ASC
     """, (to_kansas_db(region),))
-
-
+ 
+ 
 def fetch_kansas_land_scores(region: str) -> list[dict]:
+    """Land factor scores per year for one Kansas region (2014+)."""
     return run_query("""
         SELECT YEAR, LAND_RISK_SCORE
         FROM LAND_FACTOR_RISK_SCORES
         WHERE REGION = %s
-        AND REGION != 'state_avg'
         AND YEAR >= 2014
         ORDER BY YEAR ASC
     """, (to_kansas_db(region),))
@@ -210,48 +211,70 @@ def fetch_all_kansas_current() -> list[dict]:
 # ══════════════════════════════════════════════════════════════════════════════
 # IOWA FETCHERS
 # ══════════════════════════════════════════════════════════════════════════════
-def get_risk_level(score):
-    if score is None: return "Unknown"
-    if score >= 75:   return "High"
-    if score >= 50:   return "Moderate"
-    if score >= 25:   return "Low"
-    return "Very Low"
-
+ 
 def fetch_iowa_history(region: str) -> list[dict]:
-
     """
-    Iowa historical data from IOWA_HISTORICAL_TOTAL_RISK.
-    One row per region per year with all four scores included.
+    Historical Iowa data combining all four Iowa tables.
+    Returns one row per year with total, weather, market, and land scores.
+    Market is statewide so same value across all regions per year.
     """
     iowa_region = to_iowa_db(region)
-
-    rows = run_query("""
-        SELECT
-            REGION,
-            YEAR,
-            TOTAL_RISK_SCORE,
-            MARKET_RISK_SCORE,
-            WEATHER_RISK_SCORE,
-            LAND_RISK_SCORE
+ 
+    # Total risk — region specific
+    total_rows = run_query("""
+        SELECT Year, TOTAL_RISK_SCORE, TOTAL_RISK_LEVEL
         FROM IOWA_HISTORICAL_TOTAL_RISK
-        WHERE REGION = %s
-        ORDER BY YEAR ASC
+        WHERE Region = %s
+        ORDER BY Year ASC
     """, (iowa_region,))
-
+ 
+    # Weather risk — region specific
+    weather_rows = run_query("""
+        SELECT Year, WEATHER_RISK_SCORE
+        FROM IOWA_HISTORICAL_WEATHER_RISK
+        WHERE Region = %s
+        ORDER BY Year ASC
+    """, (iowa_region,))
+ 
+    # Land risk — region specific
+    land_rows = run_query("""
+        SELECT Year, LAND_RISK_SCORE
+        FROM IOWA_HISTORICAL_LAND_RISK
+        WHERE Region = %s
+        ORDER BY Year ASC
+    """, (iowa_region,))
+ 
+    # Market risk — statewide, one value per year
+    market_rows = run_query("""
+        SELECT Year, MARKET_RISK_RANK
+        FROM IOWA_HISTORICAL_MARKET_RISK
+        WHERE Region = 'Statewide Iowa'
+        ORDER BY Year ASC
+    """)
+ 
+    # Build lookup dicts by year
+    weather_by_year = {r["year"]: r.get("weather_risk_score") for r in weather_rows}
+    land_by_year    = {r["year"]: r.get("land_risk_score")    for r in land_rows}
+    market_by_year  = {r["year"]: r.get("market_risk_rank")   for r in market_rows}
+ 
+    # Combine into one row per year
     combined = []
-    for r in rows:
+    for r in total_rows:
+        year = r["year"]
         combined.append({
-            "year":            r["year"],
-            "risk_score":      r.get("total_risk_score"),
-            "risk_level":      get_risk_level(r.get("total_risk_score")),
-            "weather_score":   r.get("weather_risk_score"),
-            "market_score":    r.get("market_risk_score"),
-            "land_score":      r.get("land_risk_score"),
-            "region_standard": region,
-            "state":           "Iowa",
+            "year":              year,
+            "risk_score":        r.get("total_risk_score"),
+            "risk_level":        r.get("total_risk_level"),
+            "weather_score":     weather_by_year.get(year),
+            "market_score":      market_by_year.get(year),
+            "land_score":        land_by_year.get(year),
+            "region_standard":   region,
+            "state":             "Iowa",
         })
-
+ 
     return combined
+ 
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 # ROUTES
 # ══════════════════════════════════════════════════════════════════════════════
@@ -316,6 +339,53 @@ def get_kansas_history(region: str):
     except Exception as e: raise HTTPException(500, str(e))
  
  
+ 
+# ══════════════════════════════════════════════════════════════════════════════
+# FUTURE DATA FETCHERS
+# ══════════════════════════════════════════════════════════════════════════════
+ 
+def fetch_kansas_future(region: str, year: int) -> dict:
+    rows = run_query("""
+        SELECT REGION, YEAR, MARKET_RISK_SCORE, WEATHER_RISK_SCORE,
+               LAND_RISK_SCORE, TOTAL_RISK_SCORE, TOTAL_RISK_RANK, TOTAL_RISK_LEVEL
+        FROM KANSAS_FUTURE_TOTAL_RISK_2025_2030
+        WHERE REGION = %s AND YEAR = %s
+        LIMIT 1
+    """, (to_kansas_db(region), year))
+    if not rows:
+        raise HTTPException(404, f"No future data for Kansas {region} in {year}")
+    rows[0]["region_standard"] = region
+    return rows[0]
+ 
+ 
+def fetch_iowa_future(region: str, year: int) -> dict:
+    rows = run_query("""
+        SELECT REGION, YEAR, MARKET_RISK_SCORE, WEATHER_RISK_SCORE,
+               LAND_RISK_SCORE, TOTAL_RISK_SCORE, TOTAL_RISK_RANK, TOTAL_RISK_LEVEL
+        FROM IOWA_FUTURE_TOTAL_RISK_2025_2030
+        WHERE REGION = %s AND YEAR = %s
+        LIMIT 1
+    """, (to_iowa_db(region), year))
+    if not rows:
+        raise HTTPException(404, f"No future data for Iowa {region} in {year}")
+    rows[0]["region_standard"] = region
+    return rows[0]
+ 
+ 
+@app.get("/future/{state}/{region}/{year}")
+def get_future(state: str, region: str, year: int):
+    """Future risk data for one region and year for either Kansas or Iowa."""
+    validate_region(region)
+    try:
+        if state.lower() == "iowa":
+            data = fetch_iowa_future(region, year)
+        else:
+            data = fetch_kansas_future(region, year)
+        return {"status": "success", "state": state, "region": region, "year": year, "data": data}
+    except HTTPException: raise
+    except Exception as e: raise HTTPException(500, str(e))
+ 
+ 
 # ── Iowa routes ────────────────────────────────────────────────────────────────
  
 @app.get("/iowa/{region}/history")
@@ -348,34 +418,26 @@ def ai_explain(req: ExplainRequest):
         if not req.region_data:
             raise HTTPException(400, "region_data required")
  
-        d     = req.region_data
-        hist  = req.history or []
-        state = d.get("state", "Kansas")
-
+        d        = req.region_data
+        hist     = req.history or []
+        state    = d.get("state", "Kansas")
         hist_str = ""
         if hist:
-            lines = [
-                f"  {r.get('year')}: Total={r.get('risk_score')} ({r.get('risk_level')})"
-                f" | Weather={r.get('weather_score')} | Market={r.get('market_score')} | Land={r.get('land_score')}"
-                for r in hist
-            ]
-            hist_str = "Full historical scores 2014-2024:\n" + "\n".join(lines)
-
-        latest = hist[-1] if hist else {}
-
+            lines    = [f"  {r.get('year')}: Score {r.get('risk_score')} ({r.get('risk_level')})"
+                        for r in hist[:5]]
+            hist_str = "Historical scores:\n" + "\n".join(lines)
+ 
         prompt = f"""You are an agricultural risk analyst for {state} farmland.
 The user is viewing the historical risk dashboard for {d.get('region_standard')} {state}.
-
-Most Recent Year (2024) — Primary Focus:
-- Composite Risk Score : {latest.get('risk_score') or d.get('predicted_risk_score')}
-- Risk Level           : {latest.get('risk_level') or d.get('risk_level')}
-
+ 
+Risk Data:
+- Composite Risk Score : {d.get('predicted_risk_score') or d.get('risk_score')}
+- Risk Level           : {d.get('risk_level')}
 {hist_str}
-
-Write 3 short plain-English paragraphs (no bullet points, under 220 words):
-1. What the 2024 risk score means practically for farmers and landowners in this region.
-2. Describe the overall trend from 2014 to 2024 — is risk increasing, decreasing, or volatile? Which factor (weather, market, or land) has changed the most over the decade?
-3. One forward-looking actionable insight based on the 10-year trend."""
+ 
+Write 2 short plain-English paragraphs (no bullet points, under 160 words):
+1. What this score means practically for farmers and landowners in this region.
+2. Whether risk has improved or worsened over time and one actionable insight."""
  
     elif req.explanation_type == "comparison":
         if not req.comparison_data:

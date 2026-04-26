@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 // ── API connection ─────────────────────────────────────────────────────────────
 const API = "https://harvestiq-production.up.railway.app";
@@ -9,144 +9,99 @@ async function apiFetch(path) {
   return res.json();
 }
 
-// ── Predictive year dropdown: 2025–2030 ───────────────────────────────────────
-const YEARS = [2025, 2026, 2027, 2028, 2029, 2030];
-
-// ── Iowa mock predictive data (real data coming soon) ─────────────────────────
-const iowaRiskData = {
-  Northwest: [
-    { year: 2025, market: 59, weather: 61, land: 68 },
-    { year: 2026, market: 60, weather: 62, land: 69 },
-    { year: 2027, market: 61, weather: 63, land: 70 },
-    { year: 2028, market: 62, weather: 64, land: 71 },
-    { year: 2029, market: 63, weather: 65, land: 72 },
-    { year: 2030, market: 64, weather: 66, land: 73 },
-  ],
-  Northeast: [
-    { year: 2025, market: 56, weather: 60, land: 71 },
-    { year: 2026, market: 57, weather: 61, land: 72 },
-    { year: 2027, market: 58, weather: 62, land: 73 },
-    { year: 2028, market: 59, weather: 63, land: 74 },
-    { year: 2029, market: 60, weather: 64, land: 75 },
-    { year: 2030, market: 61, weather: 65, land: 76 },
-  ],
-  Central: [
-    { year: 2025, market: 57, weather: 60, land: 70 },
-    { year: 2026, market: 58, weather: 61, land: 71 },
-    { year: 2027, market: 59, weather: 62, land: 72 },
-    { year: 2028, market: 60, weather: 63, land: 73 },
-    { year: 2029, market: 61, weather: 64, land: 74 },
-    { year: 2030, market: 62, weather: 65, land: 75 },
-  ],
-  Southwest: [
-    { year: 2025, market: 60, weather: 62, land: 67 },
-    { year: 2026, market: 61, weather: 63, land: 68 },
-    { year: 2027, market: 62, weather: 64, land: 69 },
-    { year: 2028, market: 63, weather: 65, land: 70 },
-    { year: 2029, market: 64, weather: 66, land: 71 },
-    { year: 2030, market: 65, weather: 67, land: 72 },
-  ],
-  Southeast: [
-    { year: 2025, market: 56, weather: 61, land: 69 },
-    { year: 2026, market: 57, weather: 62, land: 70 },
-    { year: 2027, market: 58, weather: 63, land: 71 },
-    { year: 2028, market: 59, weather: 64, land: 72 },
-    { year: 2029, market: 60, weather: 65, land: 73 },
-    { year: 2030, market: 61, weather: 66, land: 74 },
-  ],
-};
-
-const iowaDescriptions = {
-  Northwest:
-    "Northwest Iowa is projected to remain relatively stable, with land-related pressure continuing to shape much of the overall predicted score.",
-  Northeast:
-    "Northeast Iowa is expected to maintain moderate projected risk, though strong land values and gradual market shifts may increase future totals.",
-  Central:
-    "Central Iowa is projected to remain balanced, with slow upward movement across market, weather, and land conditions.",
-  Southwest:
-    "Southwest Iowa may experience moderate increases in predicted risk, driven by steady changes in both market and land-related conditions.",
-  Southeast:
-    "Southeast Iowa is projected to remain moderately stable, with gradual forecast growth in both weather and land-related pressure.",
-};
-
-const REGIONS = ["Northeast", "Northwest", "Central", "Southwest", "Southeast"];
+const REGIONS      = ["Northeast", "Northwest", "Central", "Southwest", "Southeast"];
+const FUTURE_YEARS = [2025, 2026, 2027, 2028, 2029, 2030];
 
 function ComparativeAnalysis() {
   const [selectedState, setSelectedState] = useState("Kansas");
-  const [regionA, setRegionA] = useState("Central");
-  const [regionB, setRegionB] = useState("Southwest");
-  const [selectedYear, setSelectedYear] = useState(2025);
+  const [regionA,       setRegionA]       = useState("Central");
+  const [regionB,       setRegionB]       = useState("Southwest");
+  const [selectedYear,  setSelectedYear]  = useState(2025);
 
-  // ── Live API state (Kansas) ──────────────────────────────────────────────────
-  const [compData, setCompData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [aiSummary, setAiSummary] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
+  // ── Live data state ──────────────────────────────────────────────────────────
+  const [dataA,      setDataA]      = useState(null);
+  const [dataB,      setDataB]      = useState(null);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState(null);
+  const [aiSummary,  setAiSummary]  = useState("");
+  const [aiLoading,  setAiLoading]  = useState(false);
 
-  // ── Reset when state changes ───────────────────────────────────────────────
+  // ── Reset when state changes ─────────────────────────────────────────────────
   useEffect(() => {
     setRegionA("Central");
     setRegionB("Southwest");
     setSelectedYear(2025);
-    setCompData(null);
+    setDataA(null);
+    setDataB(null);
     setAiSummary("");
-    setError(null);
   }, [selectedState]);
 
-  // ── Auto-run comparison when regions/state/year change ─────────────────────
+  // ── Auto-run comparison when any selector changes ────────────────────────────
   useEffect(() => {
     if (regionA && regionB && regionA !== regionB) {
       runComparison();
     }
-  }, [regionA, regionB, selectedState, selectedYear]);
+  }, [regionA, regionB, selectedYear, selectedState]);
 
   async function runComparison() {
-    if (selectedState === "Iowa") {
-      setCompData({ type: "iowa", regionA, regionB, year: Number(selectedYear) });
-      setAiSummary("");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setAiSummary("");
 
     try {
-      // Kansas API now uses selected predictive year instead of fixed 2026
-      const data = await apiFetch(
-        `/risk/compare/${regionA}/${regionB}?year=${selectedYear}`
-      );
-
-      setCompData({
-        type: "kansas",
-        year: Number(selectedYear),
-        ...data,
-      });
-
-      loadAiSummary(data);
+      const state = selectedState.toLowerCase();
+      const [resA, resB] = await Promise.all([
+        apiFetch(`/future/${state}/${regionA}/${selectedYear}`),
+        apiFetch(`/future/${state}/${regionB}/${selectedYear}`),
+      ]);
+      setDataA(resA.data);
+      setDataB(resB.data);
+      loadAiSummary(resA.data, resB.data);
     } catch (e) {
-      setError("Could not load comparison. Check that the API supports years 2025–2030.");
+      setError("Could not load comparison. Is the API running?");
       console.error(e);
     } finally {
       setLoading(false);
     }
   }
 
-  async function loadAiSummary(data) {
+  async function loadAiSummary(dA, dB) {
+    if (!dA || !dB) return;
     setAiLoading(true);
     try {
+      const delta = Math.round((dA.total_risk_score - dB.total_risk_score) * 100) / 100;
       const res = await fetch(`${API}/ai/explain`, {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           explanation_type: "comparison",
-          selected_year: Number(selectedYear),
-          region_data: {},
-          comparison_data: data,
+          region_data:      {},
+          comparison_data: {
+            region_a: {
+              name: regionA,
+              data: {
+                predicted_risk_score: dA.total_risk_score,
+                risk_level:           dA.total_risk_level,
+                rank_label:           `Rank ${dA.total_risk_rank}`,
+                region_rank:          dA.total_risk_rank,
+                risk_info:            `Market: ${dA.market_risk_score} | Weather: ${dA.weather_risk_score} | Land: ${dA.land_risk_score}`,
+              }
+            },
+            region_b: {
+              name: regionB,
+              data: {
+                predicted_risk_score: dB.total_risk_score,
+                risk_level:           dB.total_risk_level,
+                rank_label:           `Rank ${dB.total_risk_rank}`,
+                region_rank:          dB.total_risk_rank,
+                risk_info:            `Market: ${dB.market_risk_score} | Weather: ${dB.weather_risk_score} | Land: ${dB.land_risk_score}`,
+              }
+            },
+            delta,
+            higher_risk_region: dA.total_risk_score > dB.total_risk_score ? regionA : regionB,
+          }
         }),
       });
-
       const json = await res.json();
       setAiSummary(json.explanation || "");
     } catch (e) {
@@ -156,39 +111,11 @@ function ComparativeAnalysis() {
     }
   }
 
-  // ── Iowa helpers ────────────────────────────────────────────────────────────
-  const getIowaYearData = (region, year) =>
-    iowaRiskData[region].find((item) => item.year === Number(year));
+  const delta = dataA && dataB
+    ? Math.round((dataA.total_risk_score - dataB.total_risk_score) * 100) / 100
+    : null;
 
-  const iowaTotal = (region, year) => {
-    const d = getIowaYearData(region, year);
-    return Math.round(d.market * 0.4 + d.weather * 0.35 + d.land * 0.25);
-  };
-
-  const comparisonSummary = useMemo(() => {
-    if (selectedState === "Iowa") {
-      const aTotal = iowaTotal(regionA, selectedYear);
-      const bTotal = iowaTotal(regionB, selectedYear);
-      const higher = aTotal > bTotal ? regionA : regionB;
-      const lower = aTotal > bTotal ? regionB : regionA;
-      const diff = Math.abs(aTotal - bTotal);
-
-      return `${higher}, Iowa is projected to have a higher predicted agricultural risk than ${lower}, Iowa in ${selectedYear}, with an estimated difference of ${diff} points.`;
-    }
-
-    if (compData?.type === "kansas") {
-      const delta = compData.delta;
-      const higher = compData.higher_risk_region;
-      return `${higher}, Kansas is projected to carry more agricultural risk in ${selectedYear}, with a score difference of ${Math.abs(delta)} points between the two regions.`;
-    }
-
-    return "";
-  }, [compData, regionA, regionB, selectedState, selectedYear]);
-
-  const iowaAData =
-    selectedState === "Iowa" ? getIowaYearData(regionA, selectedYear) : null;
-  const iowaBData =
-    selectedState === "Iowa" ? getIowaYearData(regionB, selectedYear) : null;
+  const higherRisk = delta > 0 ? regionA : delta < 0 ? regionB : "equal";
 
   return (
     <div className="page-container">
@@ -196,34 +123,26 @@ function ComparativeAnalysis() {
         <div className="section-heading left">
           <h3>Predictive Comparative Analysis</h3>
           <p>
-            Compare two regions side by side. Kansas shows predictive API-connected
-            data, and Iowa shows projected estimates. Use the dropdown to view
-            forecast years from 2025 through 2030.
+            Compare two regions side by side using predicted risk data from 2025 to 2030.
+            Select a state, two regions, and a prediction year.
           </p>
         </div>
 
+        {/* Controls */}
         <div className="comparison-controls">
           <div className="control-block">
             <label>State</label>
-            <select
-              value={selectedState}
-              onChange={(e) => setSelectedState(e.target.value)}
-            >
+            <select value={selectedState} onChange={(e) => setSelectedState(e.target.value)}>
               <option value="Kansas">Kansas</option>
-              <option value="Iowa">Iowa (Projected)</option>
+              <option value="Iowa">Iowa</option>
             </select>
           </div>
 
           <div className="control-block">
             <label>Prediction Year</label>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-            >
-              {YEARS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
+            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}>
+              {FUTURE_YEARS.map((y) => (
+                <option key={y} value={y}>{y}</option>
               ))}
             </select>
           </div>
@@ -231,11 +150,7 @@ function ComparativeAnalysis() {
           <div className="control-block">
             <label>Region A</label>
             <select value={regionA} onChange={(e) => setRegionA(e.target.value)}>
-              {REGIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
+              {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
         </div>
@@ -244,11 +159,7 @@ function ComparativeAnalysis() {
           <div className="control-block">
             <label>Region B</label>
             <select value={regionB} onChange={(e) => setRegionB(e.target.value)}>
-              {REGIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
+              {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
         </div>
@@ -260,9 +171,10 @@ function ComparativeAnalysis() {
         )}
       </section>
 
+      {/* Loading / error */}
       {loading && (
         <section className="content-section">
-          <p>Loading comparison...</p>
+          <p>Loading {selectedYear} comparison...</p>
         </section>
       )}
 
@@ -272,134 +184,67 @@ function ComparativeAnalysis() {
         </section>
       )}
 
-      {!loading && compData?.type === "kansas" && (
-        <section className="comparison-grid">
-          <article className="comparison-card">
-            <div className="comparison-card-top">
-              <h3>{compData.region_a.name}, Kansas</h3>
-              <div className="comparison-score">
-                {compData.region_a.data.predicted_risk_score}
+      {/* Comparison results */}
+      {!loading && dataA && dataB && (
+        <>
+          <section className="comparison-grid">
+            <article className="comparison-card">
+              <div className="comparison-card-top">
+                <h3>{regionA}, {selectedState}</h3>
+                <div className="comparison-score">
+                  {Math.round(dataA.total_risk_score * 10) / 10}
+                </div>
               </div>
+              <div className="comparison-stats">
+                <div><strong>Risk Level:</strong> {dataA.total_risk_level}</div>
+                <div><strong>Regional Rank:</strong> {dataA.total_risk_rank} of 5</div>
+                <div><strong>Market Risk:</strong> {Math.round(dataA.market_risk_score * 10) / 10}</div>
+                <div><strong>Weather Risk:</strong> {Math.round(dataA.weather_risk_score * 10) / 10}</div>
+                <div><strong>Land Risk:</strong> {Math.round(dataA.land_risk_score * 10) / 10}</div>
+              </div>
+            </article>
+
+            <article className="comparison-card">
+              <div className="comparison-card-top">
+                <h3>{regionB}, {selectedState}</h3>
+                <div className="comparison-score">
+                  {Math.round(dataB.total_risk_score * 10) / 10}
+                </div>
+              </div>
+              <div className="comparison-stats">
+                <div><strong>Risk Level:</strong> {dataB.total_risk_level}</div>
+                <div><strong>Regional Rank:</strong> {dataB.total_risk_rank} of 5</div>
+                <div><strong>Market Risk:</strong> {Math.round(dataB.market_risk_score * 10) / 10}</div>
+                <div><strong>Weather Risk:</strong> {Math.round(dataB.weather_risk_score * 10) / 10}</div>
+                <div><strong>Land Risk:</strong> {Math.round(dataB.land_risk_score * 10) / 10}</div>
+              </div>
+            </article>
+          </section>
+
+          {/* Predictive insight */}
+          <section className="content-section">
+            <div className="section-heading left">
+              <h3>Predictive Insight</h3>
+              <p>
+                {higherRisk === "equal"
+                  ? `${regionA} and ${regionB} carry equal projected risk in ${selectedYear}.`
+                  : `${higherRisk}, ${selectedState} carries higher projected risk in ${selectedYear} with a score difference of ${Math.abs(delta)} points.`
+                }
+              </p>
             </div>
+          </section>
 
-            <div className="comparison-stats">
-              <div>
-                <strong>Prediction Year:</strong> {selectedYear}
-              </div>
-              <div>
-                <strong>Risk Level:</strong> {compData.region_a.data.risk_level}
-              </div>
-              <div>
-                <strong>Regional Rank:</strong> {compData.region_a.data.region_rank} of 5
-              </div>
-              <div>
-                <strong>Rank Label:</strong> {compData.region_a.data.rank_label}
-              </div>
+          {/* AI Summary */}
+          <section className="content-section">
+            <div className="section-heading left">
+              <h3>⚡ AI Comparison Summary</h3>
+              {aiLoading
+                ? <p>Analyzing with Claude...</p>
+                : <p>{aiSummary || "Add Anthropic credits to enable AI summaries."}</p>
+              }
             </div>
-
-            <p>{compData.region_a.data.risk_info}</p>
-          </article>
-
-          <article className="comparison-card">
-            <div className="comparison-card-top">
-              <h3>{compData.region_b.name}, Kansas</h3>
-              <div className="comparison-score">
-                {compData.region_b.data.predicted_risk_score}
-              </div>
-            </div>
-
-            <div className="comparison-stats">
-              <div>
-                <strong>Prediction Year:</strong> {selectedYear}
-              </div>
-              <div>
-                <strong>Risk Level:</strong> {compData.region_b.data.risk_level}
-              </div>
-              <div>
-                <strong>Regional Rank:</strong> {compData.region_b.data.region_rank} of 5
-              </div>
-              <div>
-                <strong>Rank Label:</strong> {compData.region_b.data.rank_label}
-              </div>
-            </div>
-
-            <p>{compData.region_b.data.risk_info}</p>
-          </article>
-        </section>
-      )}
-
-      {!loading && compData?.type === "iowa" && iowaAData && iowaBData && (
-        <section className="comparison-grid">
-          <article className="comparison-card">
-            <div className="comparison-card-top">
-              <h3>{regionA}, Iowa</h3>
-              <div className="comparison-score">{iowaTotal(regionA, selectedYear)}</div>
-            </div>
-
-            <div className="comparison-stats">
-              <div>
-                <strong>Prediction Year:</strong> {selectedYear}
-              </div>
-              <div>
-                <strong>Predicted Market Risk:</strong> {iowaAData.market}
-              </div>
-              <div>
-                <strong>Predicted Weather Risk:</strong> {iowaAData.weather}
-              </div>
-              <div>
-                <strong>Predicted Land Risk:</strong> {iowaAData.land}
-              </div>
-            </div>
-
-            <p>{iowaDescriptions[regionA]}</p>
-          </article>
-
-          <article className="comparison-card">
-            <div className="comparison-card-top">
-              <h3>{regionB}, Iowa</h3>
-              <div className="comparison-score">{iowaTotal(regionB, selectedYear)}</div>
-            </div>
-
-            <div className="comparison-stats">
-              <div>
-                <strong>Prediction Year:</strong> {selectedYear}
-              </div>
-              <div>
-                <strong>Predicted Market Risk:</strong> {iowaBData.market}
-              </div>
-              <div>
-                <strong>Predicted Weather Risk:</strong> {iowaBData.weather}
-              </div>
-              <div>
-                <strong>Predicted Land Risk:</strong> {iowaBData.land}
-              </div>
-            </div>
-
-            <p>{iowaDescriptions[regionB]}</p>
-          </article>
-        </section>
-      )}
-
-      {comparisonSummary && (
-        <section className="content-section">
-          <div className="section-heading left">
-            <h3>Predictive Insight</h3>
-            <p>{comparisonSummary}</p>
-          </div>
-        </section>
-      )}
-
-      {selectedState === "Kansas" && (
-        <section className="content-section">
-          <div className="section-heading left">
-            <h3>⚡ AI Comparison Summary</h3>
-            {aiLoading ? (
-              <p>Analyzing forecast comparison...</p>
-            ) : (
-              <p>{aiSummary || "Add Anthropic credits to enable AI summaries."}</p>
-            )}
-          </div>
-        </section>
+          </section>
+        </>
       )}
     </div>
   );
