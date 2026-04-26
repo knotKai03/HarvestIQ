@@ -801,4 +801,13 @@ select {
   .svg-region-label {
     font-size: 14px;
   }
+  .about-project-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-main);
+  padding: 36px 40px;
+  max-width: 900px;
+  margin: 0 auto 28px;
+  text-align: center;
 }
+} 
