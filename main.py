@@ -250,7 +250,7 @@ def fetch_iowa_history(region: str) -> list[dict]:
  
     # Market risk — statewide, one value per year
     market_rows = run_query("""
-        SELECT Year, MARKET_RISK_RANK
+        SELECT Year, MARKET_RISK_SCORE
         FROM IOWA_HISTORICAL_MARKET_RISK
         WHERE Region = 'Statewide Iowa'
         ORDER BY Year ASC
