@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 // ── API connection ─────────────────────────────────────────────────────────────
-const API = "harvestiq-productionapp.up.railway.app";
+const API = "https://harvestiq-productionapp.up.railway.app";
 
 async function apiFetch(path) {
   const res = await fetch(API + path);
