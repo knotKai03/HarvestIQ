@@ -12,7 +12,7 @@ import {
 import "./Dashboard.css";
 
 // ── API connection ─────────────────────────────────────────────────────────────
-const API = "https://harvestiq-production.up.railway.app";
+const API = "harvestiq-productionapp.up.railway.app";
 
 async function apiFetch(path) {
   const res = await fetch(API + path);
