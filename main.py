@@ -398,8 +398,8 @@ def ai_explain(req: ExplainRequest):
                         for r in hist[:5]]
             hist_str = "Historical scores:\n" + "\n".join(lines)
  
-        prompt = f"""You are an agricultural risk analyst for {state} farmland.
-The user is viewing the historical risk dashboard for {d.get('region_standard')} {state}.
+        prompt = f"""You are an agricultural risk analyst for {selectedState} farmland.
+The user is comparing two {selectedState} regions side by side.
  
 Risk Data:
 - Composite Risk Score : {d.get('predicted_risk_score') or d.get('risk_score')}
@@ -417,18 +417,19 @@ Write 2 short plain-English paragraphs (no bullet points, under 160 words):
         c  = req.comparison_data
         da = c.get("region_a", {})
         db = c.get("region_b", {})
+        state = c.get("state", "Kansas")
  
         prompt = f"""You are an agricultural risk analyst for Kansas farmland.
 The user is comparing two Kansas regions side by side.
  
-{da.get('name')} Kansas:
+{da.get('name')} {state}:
 - Composite Risk Score : {da.get('data', {}).get('predicted_risk_score')}
 - Risk Level           : {da.get('data', {}).get('risk_level')}
 - Rank Label           : {da.get('data', {}).get('rank_label')}
 - Regional Rank        : {da.get('data', {}).get('region_rank')} of 5
 - Risk Info            : {da.get('data', {}).get('risk_info')}
  
-{db.get('name')} Kansas:
+{db.get('name')} {state}:
 - Composite Risk Score : {db.get('data', {}).get('predicted_risk_score')}
 - Risk Level           : {db.get('data', {}).get('risk_level')}
 - Rank Label           : {db.get('data', {}).get('rank_label')}

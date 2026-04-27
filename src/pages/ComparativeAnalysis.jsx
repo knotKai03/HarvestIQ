@@ -77,6 +77,7 @@ function ComparativeAnalysis() {
           explanation_type: "comparison",
           region_data:      {},
           comparison_data: {
+            state: selectedState,
             region_a: {
               name: regionA,
               data: {
