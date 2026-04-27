@@ -398,8 +398,8 @@ def ai_explain(req: ExplainRequest):
                         for r in hist[:5]]
             hist_str = "Historical scores:\n" + "\n".join(lines)
  
-        prompt = f"""You are an agricultural risk analyst for {selectedState} farmland.
-The user is comparing two {selectedState} regions side by side.
+        prompt = f"""You are an agricultural risk analyst for {state} farmland.
+The user is comparing two {state} regions side by side.
  
 Risk Data:
 - Composite Risk Score : {d.get('predicted_risk_score') or d.get('risk_score')}
